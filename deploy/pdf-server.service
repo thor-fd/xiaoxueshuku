@@ -1,0 +1,15 @@
+[Unit]
+Description=pdf-server (小学书库)
+After=network.target
+
+[Service]
+User=pdfsrv
+WorkingDirectory=/opt/pdf-server
+# 内存按 2C2G 服务器设置；jar 内已含字体，data/ 从 WorkingDirectory 相对读取
+ExecStart=/opt/jdk25/bin/java -Xms256m -Xmx768m -XX:+ExitOnOutOfMemoryError -jar /opt/pdf-server/pdf-server.jar
+Restart=always
+RestartSec=5
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,90 @@
+<view class="page">
+
+  <view class="head">
+    <view class="title">同步课本字帖，一键生成打印版</view>
+    <view class="sub">一类字描红、二类字认读，自动标注拼音。生成后可转发到电脑打印。</view>
+  </view>
+
+  <!-- 加载失败 -->
+  <view class="card error-card" wx:if="{{loadError}}">
+    <view class="error-text">{{loadError}}</view>
+    <button class="btn" bindtap="retry">重试</button>
+  </view>
+
+  <view class="card" wx:if="{{ready}}">
+    <view class="row">
+      <view class="field">
+        <view class="label">学科</view>
+        <picker range="{{subjects}}" value="{{subjectIndex}}" bindchange="onSubject">
+          <view class="picker">{{subjects[subjectIndex] || '请选择'}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <view class="label">年级 / 册</view>
+        <picker range="{{volumes}}" value="{{volumeIndex}}" bindchange="onVolume">
+          <view class="picker">{{volumes[volumeIndex] || '请选择'}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="field lesson-field">
+      <view class="label">课时</view>
+      <view class="picker" bindtap="toggleLessonPanel">
+        <text>{{lessons[lessonIndex].lesson || '请选择'}}</text>
+        <text class="arrow">{{lessonPanelOpen ? '▲' : '▼'}}</text>
+      </view>
+      <view class="mask" wx:if="{{lessonPanelOpen}}" bindtap="closeLessonPanel"></view>
+      <view class="dropdown" wx:if="{{lessonPanelOpen}}">
+        <scroll-view scroll-y class="dropdown-scroll">
+          <block wx:for="{{groupedLessons}}" wx:for-item="group" wx:key="label">
+            <view class="group-label">{{group.label}}</view>
+            <view
+              wx:for="{{group.items}}"
+              wx:for-item="item"
+              wx:key="idx"
+              class="group-item {{lessonIndex === item.idx ? 'active' : ''}}"
+              bindtap="pickLesson"
+              data-idx="{{item.idx}}">{{item.lesson}}</view>
+          </block>
+        </scroll-view>
+      </view>
+    </view>
+
+    <view class="row">
+      <view class="field">
+        <view class="label">字体</view>
+        <picker range="{{fonts}}" range-key="label" value="{{fontIndex}}" bindchange="onFont">
+          <view class="picker">{{fonts[fontIndex].label}}</view>
+        </picker>
+      </view>
+      <view class="field" wx:if="{{!subjectIsMath}}">
+        <view class="label">格线</view>
+        <picker range="{{grids}}" range-key="label" value="{{gridIndex}}" bindchange="onGrid">
+          <view class="picker">{{grids[gridIndex].label}}</view>
+        </picker>
+      </view>
+      <view class="field" wx:else>
+        <view class="label">题数</view>
+        <picker range="{{counts}}" value="{{countIndex}}" bindchange="onCount">
+          <view class="picker">{{counts[countIndex]}} 题</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="checks" wx:if="{{!subjectIsMath}}">
+      <view class="check-item">
+        <switch checked="{{withPinyin}}" bindchange="onPinyin" color="#2563eb"/>
+        <text>拼音行</text>
+      </view>
+      <view class="check-item">
+        <switch checked="{{traceDark}}" bindchange="onTraceDark" color="#2563eb"/>
+        <text>描红加深</text>
+      </view>
+    </view>
+
+    <button class="btn" loading="{{generating}}" bindtap="generate">生成字帖 PDF</button>
+    <view class="hint">生成后打开预览，右上角可转发到「文件传输助手」用电脑打印。</view>
+  </view>
+
+  <view class="foot">免费使用 · 内容根据统编版教材生字表整理</view>
+</view>

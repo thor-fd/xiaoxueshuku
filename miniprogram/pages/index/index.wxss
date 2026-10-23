@@ -1,0 +1,125 @@
+.page {
+  padding: 30rpx 32rpx 60rpx;
+}
+
+.head { margin: 20rpx 0 36rpx; }
+.title {
+  font-size: 44rpx;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.sub {
+  margin-top: 14rpx;
+  font-size: 26rpx;
+  color: #6b7280;
+}
+
+.card {
+  background: #fff;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 20rpx;
+  padding: 30rpx 28rpx;
+}
+
+.row { display: flex; gap: 20rpx; }
+.field { flex: 1; margin-bottom: 28rpx; }
+.label {
+  font-size: 24rpx;
+  color: #6b7280;
+  margin-bottom: 10rpx;
+}
+.picker {
+  height: 80rpx;
+  line-height: 80rpx;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+}
+
+/* 课时自定义分组下拉（picker 不支持分组） */
+.lesson-field { position: relative; }
+.picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.arrow {
+  color: #9ca3af;
+  font-size: 22rpx;
+}
+.mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9;
+}
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8rpx);
+  left: 0; right: 0;
+  background: #fff;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 12rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+.dropdown-scroll { max-height: 480rpx; }
+.group-label {
+  padding: 16rpx 20rpx 10rpx;
+  font-size: 23rpx;
+  color: #9ca3af;
+  background: #f9fafb;
+  position: sticky;
+  top: 0;
+}
+.group-item { padding: 18rpx 20rpx; font-size: 28rpx; }
+.group-item.active {
+  color: #2563eb;
+  font-weight: 600;
+  background: #eff6ff;
+}
+
+.checks {
+  display: flex;
+  gap: 50rpx;
+  margin: 6rpx 0 34rpx;
+}
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 27rpx;
+}
+.switch { transform: scale(0.8); }
+
+.btn {
+  background: #2563eb;
+  color: #fff;
+  font-size: 31rpx;
+  font-weight: 600;
+  border-radius: 14rpx;
+}
+.btn[loading]::before { display: none; }
+
+.error-card { text-align: center; }
+.error-text {
+  color: #dc2626;
+  font-size: 26rpx;
+  margin-bottom: 24rpx;
+}
+
+.hint {
+  margin-top: 20rpx;
+  font-size: 23rpx;
+  color: #6b7280;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.foot {
+  margin-top: 60rpx;
+  text-align: center;
+  font-size: 23rpx;
+  color: #9ca3af;
+}

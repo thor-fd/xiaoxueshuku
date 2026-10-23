@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>小学书库 - 同步课本字帖生成</title>
+<meta name="description" content="选择学科、年级和课时，一键生成可打印的同步字帖 PDF：一类字描红、二类字认读，自动标注拼音。"/>
+<style>
+  :root {
+    --text: #111827; --muted: #6b7280; --border: #e5e7eb;
+    --primary: #2563eb; --primary-dark: #1d4ed8; --bg: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+      "Segoe UI", Roboto, sans-serif;
+    color: var(--text); background: var(--bg);
+    line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  header {
+    max-width: 620px; margin: 0 auto; padding: 20px 16px;
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 700; font-size: 17px;
+  }
+  header .logo {
+    width: 22px; height: 22px; border-radius: 6px; background: var(--primary);
+    color: #fff; font-size: 12px; display: inline-flex; align-items: center;
+    justify-content: center; font-weight: 800;
+  }
+  main { max-width: 620px; margin: 0 auto; padding: 12px 16px 48px; }
+  h1 { font-size: 27px; line-height: 1.3; text-align: center; margin-top: 22px; }
+  .sub { color: var(--muted); text-align: center; margin: 10px 0 26px; font-size: 15px; }
+  .card {
+    border: 1px solid var(--border); border-radius: 12px; padding: 22px 20px;
+    background: #fff;
+  }
+  .row { display: flex; gap: 12px; }
+  .row > .field { flex: 1; }
+  .field { margin-bottom: 16px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  select, .btn {
+    width: 100%; height: 44px; border-radius: 8px; border: 1px solid var(--border);
+    background: #fff; font-size: 15px; color: var(--text); padding: 0 10px;
+    appearance: auto; outline: none;
+  }
+  select:focus { border-color: var(--primary); }
+  .checks { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 2px 0 18px; }
+  .checks label {
+    display: flex; align-items: center; gap: 7px; font-size: 14px; color: var(--text);
+    margin: 0; cursor: pointer;
+  }
+  .checks input { width: 16px; height: 16px; accent-color: var(--primary); }
+  .btn {
+    background: var(--primary); border-color: var(--primary); color: #fff;
+    font-weight: 600; font-size: 16px; cursor: pointer; margin-top: 4px;
+  }
+  .btn:hover { background: var(--primary-dark); }
+  .btn:disabled { opacity: .6; cursor: default; }
+  .msg { font-size: 13px; margin-top: 10px; color: #dc2626; min-height: 18px; }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 12px; text-align: center; }
+  .free {
+    text-align: center; font-size: 13px; color: var(--muted); margin-top: -14px; margin-bottom: 26px;
+  }
+  .how { margin-top: 42px; }
+  .how h2 { font-size: 17px; margin-bottom: 12px; }
+  .how ol { padding-left: 20px; color: var(--muted); font-size: 14px; }
+  .how li { margin-bottom: 6px; }
+  footer {
+    border-top: 1px solid var(--border); margin-top: 40px; padding: 20px 16px;
+    text-align: center; color: var(--muted); font-size: 13px;
+  }
+  @media (min-width: 640px) { h1 { font-size: 31px; } }
+</style>
+</head>
+<body>
+
+<header><span class="logo">书</span>小学书库</header>
+
+<main>
+  <h1>同步课本字帖，一键生成打印版</h1>
+  <p class="sub">选择学科、年级和课时，生成 A4 可打印 PDF。一类字描红、二类字认读，自动标注拼音。</p>
+  <p class="free">免费使用 · 无需注册</p>
+
+  <form class="card" id="form">
+    <div class="row">
+      <div class="field">
+        <label for="subject">学科</label>
+        <select id="subject"></select>
+      </div>
+      <div class="field">
+        <label for="volume">年级 / 册</label>
+        <select id="volume"></select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="lesson">课时</label>
+      <select id="lesson"></select>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="font">字体</label>
+        <select id="font">
+          <option value="WENKAI">霞鹜文楷</option>
+          <option value="HUIJI">汇迹正楷</option>
+        </select>
+      </div>
+      <div class="field" id="gridField">
+        <label for="gridType">格线</label>
+        <select id="gridType">
+          <option value="TIAN">田字格</option>
+          <option value="MI">米字格</option>
+          <option value="FANG">方格</option>
+        </select>
+      </div>
+      <div class="field" id="countField" style="display:none">
+        <label for="count">题数</label>
+        <select id="count">
+          <option value="16">16 题</option>
+          <option value="24">24 题</option>
+          <option value="32" selected>32 题</option>
+          <option value="48">48 题</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="checks" id="hanziChecks">
+      <label><input type="checkbox" id="withPinyin" checked/>拼音行</label>
+      <label><input type="checkbox" id="traceDark"/>描红加深（浅灰打不清时勾选）</label>
+    </div>
+
+    <button class="btn" id="go" type="submit">生成并下载 PDF</button>
+    <div class="msg" id="msg"></div>
+    <p class="hint">生成后自动下载，电脑打开即可打印 A4。</p>
+  </form>
+
+  <section class="how">
+    <h2>使用方法</h2>
+    <ol>
+      <li>选择学科、年级册和课时（内容与课本同步，含一类字/二类字）。</li>
+      <li>点击生成，浏览器会自动下载 PDF 文件。</li>
+      <li>用打印机直接打印 A4，建议选择"实际大小"而非"适应页面"。</li>
+    </ol>
+  </section>
+</main>
+
+<footer>© 小学书库 · 字帖内容根据统编版教材生字表整理 · 备案号占位</footer>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const subjectSel = $('subject'), volumeSel = $('volume'), lessonSel = $('lesson');
+  let catalog = {};          // subject -> volumes[]
+  let volumesCache = {};     // volume -> lessons[]
+
+  function option(value, text, disabled) {
+    const o = document.createElement('option');
+    o.value = value; o.textContent = text;
+    if (disabled) { o.disabled = true; }
+    return o;
+  }
+
+  async function loadMeta() {
+    const res = await fetch('/api/h5/meta');
+    catalog = (await res.json()).subjects || {};
+    // 学科下拉：有目录（数据文件或内置题库）的开放，其余置灰
+    ['语文', '数学', '英语'].forEach(name => {
+      const has = !!catalog[name];
+      subjectSel.appendChild(option(name, name + (has ? '' : '（即将上线）'), !has));
+    });
+    if (catalog['语文']) {
+      (catalog['语文'] || []).forEach(v => volumeSel.appendChild(option(v, v)));
+      await loadLessons(volumeSel.value);
+    } else if (catalog['数学']) {
+      subjectSel.value = '数学';
+      onSubjectChange();
+    } else {
+      msg('暂无可用内容，请先在 data/ 目录放入生字表 Excel。');
+    }
+  }
+
+  async function loadLessons(volume) {
+    if (!volume) return;
+    if (!volumesCache[volume]) {
+      const res = await fetch('/api/h5/lessons?subject=' + encodeURIComponent(subjectSel.value)
+        + '&volume=' + encodeURIComponent(volume));
+      volumesCache[volume] = await res.json();   // [{unit, lesson}]
+    }
+    lessonSel.innerHTML = '';
+    let group = null, groupLabel = null;
+    (volumesCache[volume] || []).forEach(r => {
+      const o = option(r.lesson, r.lesson);
+      if (r.unit) {
+        // 相邻同单元的课时归入同一个 optgroup
+        if (!group || groupLabel !== r.unit) {
+          group = document.createElement('optgroup');
+          group.label = r.unit;
+          groupLabel = r.unit;
+          lessonSel.appendChild(group);
+        }
+        group.appendChild(o);
+      } else {
+        lessonSel.appendChild(o);
+      }
+    });
+  }
+
+  let msgTimer;
+  function msg(text) {
+    $('msg').textContent = text;
+    clearTimeout(msgTimer);
+    msgTimer = setTimeout(() => $('msg').textContent = '', 6000);
+  }
+
+  async function onSubjectChange() {
+    const isMath = subjectSel.value === '数学';
+    // 按学科切换选项：语文→格线/拼音/描红，数学→题数
+    $('gridField').style.display = isMath ? 'none' : '';
+    $('countField').style.display = isMath ? '' : 'none';
+    $('hanziChecks').style.display = isMath ? 'none' : 'flex';
+    volumeSel.innerHTML = '';
+    (catalog[subjectSel.value] || []).forEach(v => volumeSel.appendChild(option(v, v)));
+    await loadLessons(volumeSel.value);
+  }
+  subjectSel.addEventListener('change', onSubjectChange);
+  volumeSel.addEventListener('change', () => loadLessons(volumeSel.value));
+
+  $('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('go');
+    const isMath = subjectSel.value === '数学';
+    const params = new URLSearchParams({
+      subject: subjectSel.value,
+      volume: volumeSel.value,
+      lesson: lessonSel.value,
+      font: $('font').value
+    });
+    if (isMath) {
+      params.set('count', $('count').value);
+    } else {
+      params.set('gridType', $('gridType').value);
+      params.set('withPinyin', $('withPinyin').checked);
+      params.set('traceDark', $('traceDark').checked);
+    }
+    btn.disabled = true;
+    const original = btn.textContent;
+    btn.textContent = '生成中…';
+    $('msg').textContent = '';
+    try {
+      const api = isMath ? '/api/generate/pdf' : '/api/generate/copybook/excel';
+      const res = await fetch(api + '?' + params);
+      const type = res.headers.get('content-type') || '';
+      if (!res.ok || !type.includes('application/pdf')) {
+        throw new Error(await res.text());
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = volumeSel.value + '_' + lessonSel.value + (isMath ? '_口算.pdf' : '_字帖.pdf');
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      msg('生成失败：' + (err.message || '未知错误'));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  });
+
+  loadMeta().catch(() => msg('页面加载失败，请刷新重试。'));
+</script>
+</body>
+</html>

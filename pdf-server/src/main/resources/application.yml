@@ -1,0 +1,10 @@
+server:
+  port: 8787
+
+spring:
+  application:
+    name: pdf-server
+
+# 管理接口（POST /api/admin/reload）的鉴权头，部署后改成随机字符串
+admin:
+  token: change-me-please
