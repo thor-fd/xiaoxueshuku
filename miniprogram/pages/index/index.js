@@ -28,7 +28,11 @@ Page({
     fontIndex: 0,
     grids: GRIDS,
     gridIndex: 0,
-    subjectIsMath: false,   // 数学=口算，隐藏字帖选项、显示题数
+    subjectIsMath: false,   // 数学=口算，隐藏课时/字帖选项，改为选 运算×位数
+    mathOps: ['加法', '减法', '乘法', '除法'],
+    mathOpsIndex: 0,
+    mathDigits: ['一位数', '两位数'],
+    mathDigitsIndex: 0,
     counts: [16, 24, 32, 48],
     countIndex: 2,
 
@@ -112,22 +116,28 @@ Page({
 
   onSubject(e) {
     const subjectIndex = Number(e.detail.value);
-    this.setData({
-      subjectIndex,
-      subjectIsMath: this.data.subjects[subjectIndex] === '数学',
-      volumeIndex: 0
-    });
-    this.loadLessons(this.data.volumes[0]);
+    const subjectIsMath = this.data.subjects[subjectIndex] === '数学';
+    this.setData({ subjectIndex, subjectIsMath, volumeIndex: 0 });
+    // 数学的运算×位数与年级册无关，无需加载课时
+    if (!subjectIsMath) this.loadLessons(this.data.volumes[0]);
   },
 
   onCount(e) {
     this.setData({ countIndex: Number(e.detail.value) });
   },
 
+  onMathOps(e) {
+    this.setData({ mathOpsIndex: Number(e.detail.value) });
+  },
+
+  onMathDigits(e) {
+    this.setData({ mathDigitsIndex: Number(e.detail.value) });
+  },
+
   onVolume(e) {
     const volumeIndex = Number(e.detail.value);
     this.setData({ volumeIndex });
-    this.loadLessons(this.data.volumes[volumeIndex]);
+    if (!this.data.subjectIsMath) this.loadLessons(this.data.volumes[volumeIndex]);
   },
 
   // 课时分组下拉（picker 不支持分组，改用自定义面板）
@@ -167,15 +177,19 @@ Page({
   generate() {
     const d = this.data;
     if (d.generating) return;
-    if (!d.lessons.length) {
+    const isMath = d.subjectIsMath;
+    // 数学：运算 × 位数 组合成知识点名（如「两位数除法」）；语文：取当前课时
+    const lessonName = isMath
+      ? d.mathDigits[d.mathDigitsIndex] + d.mathOps[d.mathOpsIndex]
+      : d.lessons[d.lessonIndex] && d.lessons[d.lessonIndex].lesson;
+    if (!lessonName) {
       wx.showToast({ title: '该年级册暂无课时', icon: 'none' });
       return;
     }
-    const isMath = d.subjectIsMath;
     const qs = [
       'subject=' + encodeURIComponent(d.subjects[d.subjectIndex]),
       'volume=' + encodeURIComponent(d.volumes[d.volumeIndex]),
-      'lesson=' + encodeURIComponent(d.lessons[d.lessonIndex].lesson),
+      'lesson=' + encodeURIComponent(lessonName),
       'font=' + d.fonts[d.fontIndex].value
     ];
     if (isMath) {

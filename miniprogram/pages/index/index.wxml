@@ -27,7 +27,7 @@
       </view>
     </view>
 
-    <view class="field lesson-field">
+    <view class="field lesson-field" wx:if="{{!subjectIsMath}}">
       <view class="label">课时</view>
       <view class="picker" bindtap="toggleLessonPanel">
         <text>{{lessons[lessonIndex].lesson || '请选择'}}</text>
@@ -47,6 +47,22 @@
               data-idx="{{item.idx}}">{{item.lesson}}</view>
           </block>
         </scroll-view>
+      </view>
+    </view>
+
+    <!-- 数学：运算 × 位数（出题内容与年级册解耦） -->
+    <view class="row" wx:else>
+      <view class="field">
+        <view class="label">运算</view>
+        <picker range="{{mathOps}}" value="{{mathOpsIndex}}" bindchange="onMathOps">
+          <view class="picker">{{mathOps[mathOpsIndex]}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <view class="label">数的范围</view>
+        <picker range="{{mathDigits}}" value="{{mathDigitsIndex}}" bindchange="onMathDigits">
+          <view class="picker">{{mathDigits[mathDigitsIndex]}}</view>
+        </picker>
       </view>
     </view>
 

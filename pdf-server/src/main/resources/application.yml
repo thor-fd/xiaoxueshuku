@@ -5,6 +5,8 @@ spring:
   application:
     name: pdf-server
 
-# 管理接口（POST /api/admin/reload）的鉴权头，部署后改成随机字符串
+# 管理接口（POST /api/admin/reload）的鉴权头。
+# 生产环境由服务器 systemd 注入随机令牌（/etc/systemd/system/pdf-server.service.d/90-admin-token.conf），
+# 此处留空 = 未配置时管理接口一律拒绝；nginx 层 /api/admin/ 仅限本机访问。
 admin:
-  token: change-me-please
+  token:

@@ -106,6 +106,61 @@ public class OralMathService {
                     op = "×";
                     ans = a * b;
                 }
+                // 「运算 × 位数」自由组合（H5/小程序选数学时的 直接选择模式）
+                case ADD1 -> {          // 一位数加法：a,b ∈ [1,9]
+                    a = 1 + r.nextInt(9);
+                    b = 1 + r.nextInt(9);
+                    op = "+";
+                    ans = a + b;
+                }
+                case ADD2 -> {          // 两位数加法（列竖式范围）
+                    a = 10 + r.nextInt(90);
+                    b = 10 + r.nextInt(90);
+                    op = "+";
+                    ans = a + b;
+                }
+                case SUB1 -> {          // 一位数减法：差 ≥ 0
+                    a = 1 + r.nextInt(9);
+                    b = 1 + r.nextInt(a);
+                    op = "-";
+                    ans = a - b;
+                }
+                case SUB2 -> {          // 两位数减法：差 ≥ 1
+                    a = 11 + r.nextInt(89);
+                    b = 1 + r.nextInt(a - 1);
+                    op = "-";
+                    ans = a - b;
+                }
+                case MUL1 -> {          // 一位数乘法：表内口诀
+                    a = 1 + r.nextInt(9);
+                    b = 1 + r.nextInt(9);
+                    op = "×";
+                    ans = a * b;
+                }
+                case MUL2 -> {          // 两位数乘法：两位数 × 一位数
+                    a = 11 + r.nextInt(89);
+                    b = 2 + r.nextInt(8);
+                    op = "×";
+                    ans = a * b;
+                }
+                case DIV1 -> {          // 一位数除法：被除数一位数、整除
+                    ans = 1 + r.nextInt(9);
+                    b = 2 + r.nextInt(8);
+                    if (b * ans > 9) {
+                        continue;
+                    }
+                    a = b * ans;
+                    op = "÷";
+                }
+                case DIV2 -> {          // 两位数除法：两位数 ÷ 一位数、整除
+                    ans = 1 + r.nextInt(49);
+                    b = 2 + r.nextInt(8);
+                    a = b * ans;
+                    if (a < 10 || a > 99) {
+                        continue;
+                    }
+                    op = "÷";
+                }
                 default -> throw new IllegalStateException("未知知识点: " + kp);
             }
             String q = a + " " + op + " " + b;

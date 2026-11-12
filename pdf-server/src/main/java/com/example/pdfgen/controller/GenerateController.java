@@ -35,13 +35,12 @@ public class GenerateController {
     private static final String DEFAULT_SUBJECT = "语文";
     private static final String DEFAULT_VOLUME = "一年级上";
 
-    /** 数学史册 -> 知识点（程序即时出题，无需数据文件；按课标进度映射年级） */
-    private static final Map<String, List<String>> MATH_CATALOG = new LinkedHashMap<>();
-    static {
-        MATH_CATALOG.put("一年级上", List.of("10以内加法", "10以内减法"));
-        MATH_CATALOG.put("一年级下", List.of("20以内进位加法", "20以内退位减法"));
-        MATH_CATALOG.put("二年级上", List.of("表内乘法"));
-    }
+    /** 数学可选的年级册（仅用于 PDF 标题，出题内容与年级解耦） */
+    private static final List<String> MATH_VOLUMES = List.of("一年级上", "一年级下", "二年级上");
+    /** 口算内容：运算(加减乘除) × 位数(一位数/两位数) 自由组合，程序即时出题 */
+    private static final List<String> MATH_LESSONS = List.of(
+            "一位数加法", "两位数加法", "一位数减法", "两位数减法",
+            "一位数乘法", "两位数乘法", "一位数除法", "两位数除法");
 
     private final PdfRenderService renderer;
     private final CopybookService copybookService;
@@ -64,7 +63,7 @@ public class GenerateController {
     @GetMapping("/h5/meta")
     public Map<String, Object> h5Meta() {
         Map<String, List<String>> catalog = new LinkedHashMap<>(wordBookService.catalog());
-        catalog.merge("数学", new ArrayList<>(MATH_CATALOG.keySet()), (fileVolumes, mathVolumes) -> {
+        catalog.merge("数学", new ArrayList<>(MATH_VOLUMES), (fileVolumes, mathVolumes) -> {
             LinkedHashSet<String> merged = new LinkedHashSet<>(fileVolumes);
             merged.addAll(mathVolumes);
             return new ArrayList<>(merged);
@@ -77,10 +76,9 @@ public class GenerateController {
     public List<Map<String, String>> h5Lessons(
             @RequestParam(defaultValue = DEFAULT_SUBJECT) String subject,
             @RequestParam(defaultValue = DEFAULT_VOLUME) String volume) {
-        // 数学的知识点来自程序生成器（若 data/数学.xlsx 有数据则优先）
-        if ("数学".equals(subject) && wordBookService.lessons(subject, volume).isEmpty()
-                && MATH_CATALOG.containsKey(volume)) {
-            return MATH_CATALOG.get(volume).stream()
+        // 数学的出题内容与年级册解耦（若 data/数学.xlsx 有数据则优先）
+        if ("数学".equals(subject) && wordBookService.lessons(subject, volume).isEmpty()) {
+            return MATH_LESSONS.stream()
                     .map(label -> Map.of("unit", "口算", "lesson", label))
                     .toList();
         }
