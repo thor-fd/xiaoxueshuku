@@ -22,13 +22,14 @@ import java.util.Set;
 public class OralMathService {
 
     public Map<String, Object> buildModel(OralMathRequest req) {
-        KnowledgePoint kp = req.knowledgePoint() == null ? KnowledgePoint.ADD10 : req.knowledgePoint();
+        List<KnowledgePoint> points = (req.knowledgePoints() == null || req.knowledgePoints().isEmpty())
+                ? List.of(KnowledgePoint.ADD10) : req.knowledgePoints();
         int count = clamp(req.count(), 32, 4, 100);
         int cols = clamp(req.cols(), 4, 2, 5);
         boolean withAnswer = req.withAnswer() == null || req.withAnswer();
         Random random = req.seed() == null ? new Random() : new Random(req.seed());
 
-        List<Map<String, Object>> equations = generate(kp, count, random);
+        List<Map<String, Object>> equations = generate(points, count, random);
 
         List<List<Map<String, Object>>> rows = partition(equations, cols);
         List<List<Map<String, Object>>> answerRows = partition(equations.stream()
@@ -39,7 +40,8 @@ public class OralMathService {
                 })
                 .toList(), cols);
 
-        String title = "口算练习 · " + kp.label
+        String title = "口算练习 · " + points.stream().map(p -> p.label)
+                .collect(java.util.stream.Collectors.joining("、"))
                 + (req.day() == null ? "" : "（第 " + req.day() + " 天）");
 
         Map<String, Object> model = new HashMap<>();
@@ -51,7 +53,7 @@ public class OralMathService {
         return model;
     }
 
-    private List<Map<String, Object>> generate(KnowledgePoint kp, int count, Random r) {
+    private List<Map<String, Object>> generate(List<KnowledgePoint> points, int count, Random r) {
         List<Map<String, Object>> result = new ArrayList<>();
         Set<String> seen = new HashSet<>();
         int attempts = 0;
@@ -61,6 +63,9 @@ public class OralMathService {
             int b;
             int ans;
             String op;
+            // 多知识点混合：每题随机取一个（同 seed 下分布可复现）
+            KnowledgePoint kp = points.size() == 1 ? points.get(0)
+                    : points.get(r.nextInt(points.size()));
             switch (kp) {
                 // 10以内加法：和不超过 10，排除 0+0
                 case ADD10 -> {
@@ -113,11 +118,14 @@ public class OralMathService {
                     op = "+";
                     ans = a + b;
                 }
-                case ADD2 -> {          // 两位数加法（列竖式范围）
+                case ADD2 -> {          // 两位数加法：和 < 100（不进三位）
                     a = 10 + r.nextInt(90);
                     b = 10 + r.nextInt(90);
-                    op = "+";
                     ans = a + b;
+                    if (ans > 99) {
+                        continue;
+                    }
+                    op = "+";
                 }
                 case SUB1 -> {          // 一位数减法：差 ≥ 0
                     a = 1 + r.nextInt(9);
@@ -137,11 +145,14 @@ public class OralMathService {
                     op = "×";
                     ans = a * b;
                 }
-                case MUL2 -> {          // 两位数乘法：两位数 × 一位数
+                case MUL2 -> {          // 两位数乘法：两位数 × 一位数，积 < 100
                     a = 11 + r.nextInt(89);
                     b = 2 + r.nextInt(8);
-                    op = "×";
                     ans = a * b;
+                    if (ans > 99) {
+                        continue;
+                    }
+                    op = "×";
                 }
                 case DIV1 -> {          // 一位数除法：被除数一位数、整除
                     ans = 1 + r.nextInt(9);

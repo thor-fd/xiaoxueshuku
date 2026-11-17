@@ -28,9 +28,13 @@ Page({
     fontIndex: 0,
     grids: GRIDS,
     gridIndex: 0,
-    subjectIsMath: false,   // 数学=口算，隐藏课时/字帖选项，改为选 运算×位数
-    mathOps: ['加法', '减法', '乘法', '除法'],
-    mathOpsIndex: 0,
+    subjectIsMath: false,   // 数学=口算，隐藏课时/字帖选项，改为选 运算(可多选)×位数
+    mathOps: [
+      { value: 'ADD', label: '加法', checked: true },
+      { value: 'SUB', label: '减法', checked: true },
+      { value: 'MUL', label: '乘法', checked: false },
+      { value: 'DIV', label: '除法', checked: false }
+    ],
     mathDigits: ['一位数', '两位数'],
     mathDigitsIndex: 0,
     counts: [16, 24, 32, 48],
@@ -127,7 +131,10 @@ Page({
   },
 
   onMathOps(e) {
-    this.setData({ mathOpsIndex: Number(e.detail.value) });
+    const selected = e.detail.value;   // 勾选的运算 value 数组
+    this.setData({
+      mathOps: this.data.mathOps.map(o => Object.assign({}, o, { checked: selected.indexOf(o.value) >= 0 }))
+    });
   },
 
   onMathDigits(e) {
@@ -178,9 +185,14 @@ Page({
     const d = this.data;
     if (d.generating) return;
     const isMath = d.subjectIsMath;
-    // 数学：运算 × 位数 组合成知识点名（如「两位数除法」）；语文：取当前课时
+    // 数学：勾选的运算 × 位数 → 知识点名（多选用英文逗号分隔，如「一位数加法,一位数减法」）
+    const selectedOps = d.mathOps.filter(o => o.checked);
+    if (isMath && selectedOps.length === 0) {
+      wx.showToast({ title: '请至少勾选一种运算', icon: 'none' });
+      return;
+    }
     const lessonName = isMath
-      ? d.mathDigits[d.mathDigitsIndex] + d.mathOps[d.mathOpsIndex]
+      ? selectedOps.map(o => d.mathDigits[d.mathDigitsIndex] + o.label).join(',')
       : d.lessons[d.lessonIndex] && d.lessons[d.lessonIndex].lesson;
     if (!lessonName) {
       wx.showToast({ title: '该年级册暂无课时', icon: 'none' });

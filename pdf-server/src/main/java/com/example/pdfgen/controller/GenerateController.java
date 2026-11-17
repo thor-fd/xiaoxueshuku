@@ -105,11 +105,18 @@ public class GenerateController {
             @RequestParam(defaultValue = "true") boolean withPinyin,
             @RequestParam(defaultValue = "false") boolean traceDark) {
         if ("数学".equals(subject)) {
-            KnowledgePoint kp = KnowledgePoint.byLabel(lesson);
+            // lesson 支持逗号分隔的多知识点混合出题（如「一位数加法,一位数减法」）
+            List<KnowledgePoint> kps = java.util.Arrays.stream(lesson.split("[,，、]"))
+                    .map(String::trim).filter(s -> !s.isEmpty())
+                    .map(KnowledgePoint::byLabel)
+                    .toList();
+            if (kps.isEmpty()) {
+                return plainText(400, "请至少选择一种运算");
+            }
             byte[] body = renderer.render("oral_math.ftl", oralMathService.buildModel(
-                    new OralMathRequest(kp, Math.max(4, Math.min(count, 100)), 4,
+                    new OralMathRequest(kps, Math.max(4, Math.min(count, 100)), 4,
                             null, true, null, font)));
-            return pdf(volume + "-" + lesson + "-口算.pdf", body, true);
+            return pdf(volume + "-" + lesson.replaceAll("[,，、]", "+") + "-口算.pdf", body, true);
         }
         // 语文 → 字帖
         if (wordBookService.isEmpty()) {
@@ -190,7 +197,7 @@ public class GenerateController {
             @RequestParam(defaultValue = "ADD20CARRY") KnowledgePoint kp,
             @RequestParam(defaultValue = "32") int count,
             @RequestParam(defaultValue = "42") long seed) {
-        return oralMath(new OralMathRequest(kp, count, 4, seed, true, null, "WENKAI"));
+        return oralMath(new OralMathRequest(List.of(kp), count, 4, seed, true, null, "WENKAI"));
     }
 
     // ---------- 内部 ----------

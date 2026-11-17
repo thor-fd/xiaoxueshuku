@@ -50,13 +50,16 @@
       </view>
     </view>
 
-    <!-- 数学：运算 × 位数（出题内容与年级册解耦） -->
-    <view class="row" wx:else>
+    <!-- 数学：运算（可多选，混合出题）× 位数（出题内容与年级册解耦） -->
+    <view wx:else>
       <view class="field">
-        <view class="label">运算</view>
-        <picker range="{{mathOps}}" value="{{mathOpsIndex}}" bindchange="onMathOps">
-          <view class="picker">{{mathOps[mathOpsIndex]}}</view>
-        </picker>
+        <view class="label">运算（可多选，混合出题）</view>
+        <checkbox-group bindchange="onMathOps" class="checks">
+          <label wx:for="{{mathOps}}" wx:key="value" class="check-item">
+            <checkbox value="{{item.value}}" checked="{{item.checked}}" color="#2563eb"/>
+            <text>{{item.label}}</text>
+          </label>
+        </checkbox-group>
       </view>
       <view class="field">
         <view class="label">数的范围</view>

@@ -100,15 +100,15 @@
       <select id="lesson"></select>
     </div>
 
-    <div class="row" id="mathRow" style="display:none">
+    <div id="mathRow" style="display:none">
       <div class="field">
-        <label for="ops">运算</label>
-        <select id="ops">
-          <option value="ADD">加法</option>
-          <option value="SUB">减法</option>
-          <option value="MUL">乘法</option>
-          <option value="DIV">除法</option>
-        </select>
+        <label>运算（可多选，混合出题）</label>
+        <div class="checks">
+          <label><input type="checkbox" class="op" value="ADD" checked/>加法</label>
+          <label><input type="checkbox" class="op" value="SUB" checked/>减法</label>
+          <label><input type="checkbox" class="op" value="MUL"/>乘法</label>
+          <label><input type="checkbox" class="op" value="DIV"/>除法</label>
+        </div>
       </div>
       <div class="field">
         <label for="digits">数的范围</label>
@@ -255,10 +255,15 @@
     e.preventDefault();
     const btn = $('go');
     const isMath = subjectSel.value === '数学';
-    // 数学：运算 × 位数 组合成知识点名（如「两位数乘法」）；语文：取课时下拉
+    // 数学：勾选的运算 × 位数 → 知识点名（多选用英文逗号分隔，如「一位数加法,一位数减法」）
+    const OPS_NAME = { ADD: '加法', SUB: '减法', MUL: '乘法', DIV: '除法' };
+    const ops = [...document.querySelectorAll('#mathRow input.op:checked')].map(i => i.value);
+    if (isMath && ops.length === 0) {
+      msg('请至少勾选一种运算');
+      return;
+    }
     const lessonName = isMath
-      ? ($('digits').value === '1' ? '一位数' : '两位数')
-        + { ADD: '加法', SUB: '减法', MUL: '乘法', DIV: '除法' }[$('ops').value]
+      ? ops.map(o => ($('digits').value === '1' ? '一位数' : '两位数') + OPS_NAME[o]).join(',')
       : lessonSel.value;
     const params = new URLSearchParams({
       subject: subjectSel.value,
@@ -288,7 +293,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = volumeSel.value + '_' + lessonName + (isMath ? '_口算.pdf' : '_字帖.pdf');
+      a.download = volumeSel.value + '_' + lessonName.replaceAll(',', '+') + (isMath ? '_口算.pdf' : '_字帖.pdf');
       document.body.appendChild(a);
       a.click();
       a.remove();
